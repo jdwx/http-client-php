@@ -22,16 +22,16 @@ class SimpleUriTest extends TestCase {
     }
 
 
-    public function testFromArray() : void {
-        $uri = SimpleUri::fromArray( [
+    public function testFromForArray() : void {
+        $uri = SimpleUri::from( [
             'port' => '12345',
         ] );
         self::assertSame( 12345, $uri->nuPort );
     }
 
 
-    public function testFromString() : void {
-        $uri = SimpleUri::fromString( 'https://foo:bar@example.com:12345/baz/qux/?quux=1&corge=2#grault' );
+    public function testFromForString() : void {
+        $uri = SimpleUri::from( 'https://foo:bar@example.com:12345/baz/qux/?quux=1&corge=2#grault' );
         self::assertSame( 'https', $uri->stScheme );
         self::assertSame( 'example.com', $uri->stHost );
         self::assertSame( 12345, $uri->nuPort );
@@ -41,7 +41,7 @@ class SimpleUriTest extends TestCase {
         self::assertSame( 'quux=1&corge=2', $uri->stQuery );
         self::assertSame( 'grault', $uri->stFragment );
 
-        $uri = SimpleUri::fromString( 'https://example.com/foo/bar?baz=1&qux=2#quux' );
+        $uri = SimpleUri::from( 'https://example.com/foo/bar?baz=1&qux=2#quux' );
         self::assertSame( 'https', $uri->stScheme );
         self::assertSame( '', $uri->stUser ); // No user info specified
         self::assertSame( '', $uri->stPassword ); // No password specified
@@ -52,8 +52,15 @@ class SimpleUriTest extends TestCase {
         self::assertSame( 'quux', $uri->stFragment );
 
         self::expectException( InvalidArgumentException::class );
-        SimpleUri::fromString( 'https:////example.com' );
+        SimpleUri::from( 'https:////example.com' );
 
+    }
+
+
+    public function testFromForUri() : void {
+        $uri = SimpleUri::from( 'https://foo:bar@example.com:12345/baz/qux/?quux=1&corge=2#grault' );
+        $uri2 = SimpleUri::from( $uri );
+        self::assertSame( strval( $uri ), strval( $uri2 ) );
     }
 
 

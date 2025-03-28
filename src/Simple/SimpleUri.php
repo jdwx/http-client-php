@@ -30,6 +30,28 @@ readonly class SimpleUri implements UriInterface, \Stringable {
     }
 
 
+    public static function from( array|string|UriInterface $i_uri ) : static {
+        if ( is_string( $i_uri ) ) {
+            return static::fromString( $i_uri );
+        }
+        if ( is_array( $i_uri ) ) {
+            return static::fromArray( $i_uri );
+        }
+        $stUserInfo = $i_uri->getUserInfo();
+        [ $stUser, $stPassword ] = $stUserInfo ? explode( ':', $stUserInfo, 2 ) + [ '' ] : [ '', '' ];
+        return new static(
+            $i_uri->getScheme(),
+            $stUser,
+            $stPassword,
+            $i_uri->getHost(),
+            $i_uri->getPort(),
+            $i_uri->getPath(),
+            $i_uri->getQuery(),
+            $i_uri->getFragment()
+        );
+    }
+
+
     public static function fromArray( array $i_rUri ) : static {
         $nuPort = $i_rUri[ 'port' ] ?? null;
         if ( is_string( $nuPort ) ) {
