@@ -103,10 +103,19 @@ final class SimpleMessageTest extends TestCase {
 
     public function testWithAddedHeader() : void {
         $msg = new SimpleMessage();
-        $msg2 = $msg->withAddedHeader( 'Content-Type', 'text/plain' );
-        self::assertEquals( [ 'content-type' => [ 'text/plain' ] ], $msg2->getHeaders() );
-        $msg3 = $msg2->withAddedHeader( 'content-type', 'application/json' );
-        self::assertEquals( [ 'content-type' => [ 'text/plain', 'application/json' ] ], $msg3->getHeaders() );
+        $msg = $msg->withAddedHeader( 'Content-Type', 'text/plain' );
+        self::assertEquals( [ 'text/plain' ], $msg->rHeaders[ 'content-type' ] );
+
+        $msg = $msg->withAddedHeader( 'content-type', 'application/json' );
+        self::assertEquals( [ 'content-type' => [ 'text/plain', 'application/json' ] ], $msg->getHeaders() );
+
+        $msg = $msg->withAddedHeader( 'Content-Type', [ 'text/html', 'application/xml' ] );
+        self::assertEquals( [
+            'text/plain',
+            'application/json',
+            'text/html',
+            'application/xml',
+        ], $msg->rHeaders[ 'content-type' ] );
     }
 
 
@@ -114,6 +123,7 @@ final class SimpleMessageTest extends TestCase {
         $msg = new SimpleMessage();
         $body = new SimpleStringStream( 'TEST_BODY' );
         $msg2 = $msg->withBody( $body );
+        self::assertSame( '', $msg->getBody()->getContents() );
         self::assertSame( 'TEST_BODY', $msg2->getBody()->getContents() );
     }
 
@@ -122,8 +132,48 @@ final class SimpleMessageTest extends TestCase {
         $msg = new SimpleMessage();
         $msg = $msg->withHeader( 'Content-Type', 'text/plain' );
         self::assertEquals( [ 'content-type' => [ 'text/plain' ] ], $msg->getHeaders() );
+
         $msg = $msg->withHeader( 'Content-Type', 'application/json' );
         self::assertEquals( [ 'content-type' => [ 'application/json' ] ], $msg->getHeaders() );
+
+        $msg = $msg->withHeader( 'Content-Type', [ 'text/html', 'application/xml' ] );
+        self::assertEquals( [ 'text/html', 'application/xml' ], $msg->rHeaders[ 'content-type' ] );
+    }
+
+
+    public function testWithHeadersForAdd() : void {
+        $msg = new SimpleMessage();
+        $msg->rHeaders = [
+            'content-type' => [ 'text/plain' ],
+            'content-length' => [ '123' ],
+        ];
+        $msg = $msg->withHeaders( [
+            'content-type' => [ 'application/json' ],
+            'host' => 'example.com',
+        ], true );
+        self::assertSame( [
+            'content-type' => [ 'text/plain', 'application/json' ],
+            'content-length' => [ '123' ],
+            'host' => [ 'example.com' ],
+        ], $msg->rHeaders );
+    }
+
+
+    public function testWithHeadersForNoAdd() : void {
+        $msg = new SimpleMessage();
+        $msg->rHeaders = [
+            'content-type' => [ 'text/plain' ],
+            'content-length' => [ '123' ],
+        ];
+        $msg = $msg->withHeaders( [
+            'content-type' => [ 'application/json' ],
+            'host' => 'example.com',
+        ] );
+        self::assertSame( [
+            'content-type' => [ 'application/json' ],
+            'content-length' => [ '123' ],
+            'host' => [ 'example.com' ],
+        ], $msg->rHeaders );
     }
 
 
