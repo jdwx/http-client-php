@@ -37,9 +37,13 @@ class SimpleRequest extends SimpleMessage implements RequestInterface {
 
 
     public function getRequestTarget() : string {
-        return $this->nstRequestTarget ?? ( ( $this->uri instanceof UriInterface )
-            ? $this->uri->getPath() . '?' . $this->uri->getQuery()
-            : '/' );
+        if ( is_string( $this->nstRequestTarget ) ) {
+            return $this->nstRequestTarget;
+        }
+        $st = $this->getUri()->getPath();
+        $stQuery = $this->getUri()->getQuery();
+        $st .= $stQuery ? '?' . $stQuery : '';
+        return $st;
     }
 
 
