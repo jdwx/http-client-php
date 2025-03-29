@@ -38,7 +38,9 @@ readonly class SimpleUri implements UriInterface, \Stringable {
             return static::fromArray( $i_uri );
         }
         $stUserInfo = $i_uri->getUserInfo();
-        [ $stUser, $stPassword ] = $stUserInfo ? explode( ':', $stUserInfo, 2 ) + [ '' ] : [ '', '' ];
+        [ $stUser, $stPassword ] = $stUserInfo
+            ? array_merge( explode( ':', $stUserInfo, 2 ), [ '' ] )
+            : [ '', '' ];
         return new static(
             $i_uri->getScheme(),
             $stUser,
