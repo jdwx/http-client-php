@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
 
@@ -37,13 +38,60 @@ final class SimpleFactoryTest extends TestCase {
     }
 
 
+    public function testCreateStream() : void {
+        $fac = new SimpleFactory();
+        $stream = $fac->createStream( 'TEST_CONTENT' );
+        self::assertInstanceOf( StreamInterface::class, $stream );
+        self::assertSame( 'TEST_CONTENT', $stream->getContents() );
+    }
+
+
+    public function testCreateStreamFile() : void {
+        $fac = new SimpleFactory();
+        $stFilePath = __DIR__ . '/../Support/content.txt';
+        $stream = $fac->createStreamFromFile( $stFilePath );
+        self::assertInstanceOf( StreamInterface::class, $stream );
+        self::assertSame( 'TEST_CONTENT_FILE', $stream->getContents() );
+    }
+
+
+    public function testCreateStreamFileForNoFile() : void {
+        $fac = new SimpleFactory();
+        $stFilePath = __DIR__ . '/../Support/NO_FILE.txt';
+        $this->expectException( \RuntimeException::class );
+        $fac->createStreamFromFile( $stFilePath );
+    }
+
+
+    public function testCreateStreamResource() : void {
+        $fac = new SimpleFactory();
+        $stFilePath = __DIR__ . '/../Support/content.txt';
+        $resource = fopen( $stFilePath, 'r' );
+        self::assertIsResource( $resource );
+        $stream = $fac->createStreamFromResource( $resource );
+        self::assertInstanceOf( StreamInterface::class, $stream );
+        self::assertSame( 'TEST_CONTENT_FILE', $stream->getContents() );
+    }
+
+
+    /** @suppress PhanTypeMismatchArgumentProbablyReal */
+    public function testCreateStreamResourceForInvalidType() : void {
+        $fac = new SimpleFactory();
+        $this->expectException( \InvalidArgumentException::class );
+        /**
+         * @noinspection PhpParamsInspection
+         * @phpstan-ignore-next-line
+         */
+        $fac->createStreamFromResource( 'invalid_resource' );
+    }
+
+
     public function testCreateUri() : void {
         $fac = new SimpleFactory();
         $stUri = 'https://example.com/foo?bar=1&baz=2';
         $uri = $fac->createUri( $stUri );
         self::assertInstanceOf( UriInterface::class, $uri );
         self::assertSame( $stUri, strval( $uri ) );
-
     }
 
 
