@@ -109,7 +109,10 @@ final class ResponseTest extends TestCase {
 
     public function testGetBareContentTypeForTwo() : void {
         $rsp = new SimpleResponse();
-        $rsp = $rsp->withHeader( 'Content-Type', [ 'application/json', 'text/html' ] );
+        $rsp = $rsp->withHeader( 'Content-Type', [
+            'application/json',
+            'text/html',
+        ] );
         $base = $this->newResponse( $rsp );
         self::assertNull( $base->getBareContentType() );
     }
@@ -136,7 +139,10 @@ final class ResponseTest extends TestCase {
     public function testGetHeaderOneExForTwo() : void {
 
         $rsp = new SimpleResponse();
-        $rsp = $rsp->withHeader( 'Content-Type', [ 'application/json', 'text/html' ] );
+        $rsp = $rsp->withHeader( 'Content-Type', [
+            'application/json',
+            'text/html',
+        ] );
         $base = $this->newResponse( $rsp );
         self::expectException( HttpHeaderException::class );
         $base->getHeaderOneEx( 'content-type' );
@@ -163,7 +169,10 @@ final class ResponseTest extends TestCase {
     public function testGetHeaderOneForTwo() : void {
 
         $rsp = new SimpleResponse();
-        $rsp = $rsp->withHeader( 'Content-Type', [ 'application/json', 'text/html' ] );
+        $rsp = $rsp->withHeader( 'Content-Type', [
+            'application/json',
+            'text/html',
+        ] );
         $base = $this->newResponse( $rsp );
         self::assertNull( $base->getHeaderOne( 'content-type' ) );
     }
@@ -287,6 +296,30 @@ final class ResponseTest extends TestCase {
     }
 
 
+    public function testIsError() : void {
+        $srp = new SimpleResponse();
+        $rsp = $this->newResponse();
+        self::assertFalse( $rsp->isError() );
+
+        $srp = $srp->withStatus( 100 );
+        $rsp = $this->newResponse( $srp );
+        self::assertFalse( $rsp->isError() );
+
+        $srp = $srp->withStatus( 301 );
+        $rsp = $this->newResponse( $srp );
+        self::assertFalse( $rsp->isError() );
+
+        $srp = $srp->withStatus( 404 );
+        $rsp = $this->newResponse( $srp );
+        self::assertTrue( $rsp->isError() );
+
+        $srp = $srp->withStatus( 500 );
+        $rsp = $this->newResponse( $srp );
+        self::assertTrue( $rsp->isError() );
+
+    }
+
+
     public function testIsRedirect() : void {
 
         $rsp = new SimpleResponse();
@@ -374,7 +407,7 @@ final class ResponseTest extends TestCase {
 
 
     private function newResponse( ResponseInterface|StreamInterface|string|null $i_rsp = null,
-                                  LoggerInterface                               $i_log = null ) : Response {
+                                  ?LoggerInterface                              $i_log = null ) : Response {
         if ( is_string( $i_rsp ) ) {
             $i_rsp = new SimpleStringStream( $i_rsp );
         }

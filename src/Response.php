@@ -11,9 +11,10 @@ use JDWX\HttpClient\Exceptions\HttpHeaderException;
 use JDWX\HttpClient\Exceptions\NoBodyException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerInterface;
+use Stringable;
 
 
-class Response extends ResponseDecorator implements ResponseInterface, \Stringable {
+class Response extends ResponseDecorator implements ResponseInterface, Stringable {
 
 
     private ?string $nstBody = null;
@@ -146,6 +147,12 @@ class Response extends ResponseDecorator implements ResponseInterface, \Stringab
             return false;
         }
         return str_starts_with( $nstType, $i_stType . '/' );
+    }
+
+
+    public function isError() : bool {
+        $uStatus = $this->getStatusCode();
+        return 4 === intval( $uStatus / 100 ) || 5 === intval( $uStatus / 100 );
     }
 
 
