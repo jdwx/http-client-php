@@ -16,9 +16,10 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
+use Support\MyTestLogger;
 
 
-require_once __DIR__ . '/MyTestLogger.php';
+require_once __DIR__ . '/Support/MyTestLogger.php';
 
 
 #[CoversClass( Response::class )]
@@ -373,7 +374,7 @@ final class ResponseTest extends TestCase {
 
 
     private function newResponse( ResponseInterface|StreamInterface|string|null $i_rsp = null,
-                                  LoggerInterface $i_log = null ) : Response {
+                                  LoggerInterface                               $i_log = null ) : Response {
         if ( is_string( $i_rsp ) ) {
             $i_rsp = new SimpleStringStream( $i_rsp );
         }
