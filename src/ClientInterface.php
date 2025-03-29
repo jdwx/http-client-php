@@ -22,4 +22,10 @@ interface ClientInterface extends \Psr\Http\Client\ClientInterface {
                           array               $i_rHeaders = [] ) : ResponseInterface;
 
 
+    public function setErrorIsAcceptable( bool $i_bErrorIsAcceptable = true ) : static;
+
+
+    public function setLogErrors( bool $i_bLogErrors = true ) : static;
+
+
 }

@@ -5,6 +5,7 @@ declare( strict_types = 1 );
 
 
 use JDWX\HttpClient\Client;
+use JDWX\HttpClient\Exceptions\HttpStatusException;
 use JDWX\HttpClient\Response;
 use JDWX\HttpClient\Simple\SimpleFactory;
 use JDWX\HttpClient\Simple\SimpleResponse;
@@ -14,17 +15,73 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Support\MyTestClient;
+use Support\MyTestLogger;
+
+
+require_once __DIR__ . '/Support/MyTestClient.php';
+require_once __DIR__ . '/Support/MyTestLogger.php';
 
 
 #[CoversClass( Client::class )]
 final class ClientTest extends TestCase {
 
 
-    public function testGetForError500() : void {
+    public function testConstructForMissingClient() : void {
+        $this->expectException( InvalidArgumentException::class );
+        $client = new Client();
+        unset( $client );
+    }
+
+
+    public function testGetForError500Acceptable() : void {
+        $logger = new MyTestLogger();
         $backend = new MyTestClient( [ '/' => 500 ] );
-        $client = new Client( $backend );
+        $client = new Client( $backend, $logger );
+        $client->setErrorIsAcceptable();
         $rsp = $client->get( '/' );
         self::assertSame( 500, $rsp->getStatusCode() );
+
+        self::assertStringContainsString( 'HTTP Status', $logger->message ?? '' );
+        self::assertSame( 500, $logger->context[ 'status' ] ?? null );
+        self::assertSame( 'GET', $logger->context[ 'method' ] ?? null );
+        self::assertSame( '/', $logger->context[ 'uri' ] ?? null );
+        self::assertSame( LOG_INFO, $logger->level );
+    }
+
+
+    public function testGetForError500AcceptableNoLogErrors() : void {
+        $logger = new MyTestLogger();
+        $backend = new MyTestClient( [ '/' => 500 ] );
+        $client = new Client( $backend, $logger );
+        $client->setErrorIsAcceptable();
+        $client->setLogErrors( false );
+        $rsp = $client->get( '/' );
+        self::assertSame( 500, $rsp->getStatusCode() );
+        self::assertSame( LOG_DEBUG, $logger->level );
+    }
+
+
+    public function testGetForError500Exception() : void {
+        $backend = new MyTestClient( [ '/' => 500 ] );
+        $client = new Client( $backend );
+        $this->expectException( HttpStatusException::class );
+        $client->get( '/' );
+    }
+
+
+    public function testGetForError500ExceptionLog() : void {
+        $logger = new MyTestLogger();
+        $backend = new MyTestClient( [ '/' => 500 ] );
+        $client = new Client( $backend, $logger );
+        try {
+            $client->get( '/' );
+        } catch ( HttpStatusException ) {
+        }
+
+        self::assertStringContainsString( 'HTTP Status', $logger->message ?? '' );
+        self::assertSame( 500, $logger->context[ 'status' ] ?? null );
+        self::assertSame( LOG_ERR, $logger->level );
+
     }
 
 
@@ -51,8 +108,9 @@ final class ClientTest extends TestCase {
 
 
     public function testGetForQuery() : void {
+        $logger = new MyTestLogger();
         $backend = new MyTestClient( [ '/foo' => 'TEST_CONTENT' ] );
-        $client = new Client( $backend );
+        $client = new Client( $backend, $logger );
         $client->get( '/foo', i_itQueryParams: [
             'bar' => '1',
             'baz' => '2',
@@ -60,6 +118,10 @@ final class ClientTest extends TestCase {
         $req = array_shift( $backend->rRequests );
         $uri = $req->getUri();
         self::assertSame( 'bar=1&baz=2', $uri->getQuery() );
+
+        self::assertStringContainsString( 'HTTP Status', $logger->message ?? '' );
+        self::assertSame( 200, $logger->context[ 'status' ] ?? null );
+        self::assertSame( LOG_DEBUG, $logger->level );
     }
 
 

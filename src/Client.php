@@ -7,6 +7,8 @@ declare( strict_types = 1 );
 namespace JDWX\HttpClient;
 
 
+use InvalidArgumentException;
+use JDWX\HttpClient\Exceptions\HttpStatusException;
 use JDWX\HttpClient\Simple\SimpleFactory;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -14,6 +16,8 @@ use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
+use Psr\Log\LoggerInterface;
+use Stringable;
 
 
 class Client extends ClientDecorator implements ClientInterface {
@@ -25,26 +29,34 @@ class Client extends ClientDecorator implements ClientInterface {
 
     private StreamFactoryInterface $streamFactory;
 
+    private ?LoggerInterface $logger;
 
-    public function __construct( \Psr\Http\Client\ClientInterface $i_client,
-                                 object                           ...$i_rFactories ) {
-        parent::__construct( $i_client );
+    private bool $bErrorIsAcceptable = false;
 
-        $this->requestFactory = self::pickFactory( $i_rFactories, RequestFactoryInterface::class );
-        $this->uriFactory = self::pickFactory( $i_rFactories, UriFactoryInterface::class );
-        $this->streamFactory = self::pickFactory( $i_rFactories, StreamFactoryInterface::class );
+    private bool $bLogErrors = true;
+
+
+    public function __construct( object ...$i_rSources ) {
+        $client = self::pickInterfaceEx( $i_rSources, \Psr\Http\Client\ClientInterface::class );
+        assert( $client instanceof ClientInterface );
+        parent::__construct( $client );
+
+        $this->requestFactory = self::pickInterfaceEx( $i_rSources, RequestFactoryInterface::class );
+        $this->uriFactory = self::pickInterfaceEx( $i_rSources, UriFactoryInterface::class );
+        $this->streamFactory = self::pickInterfaceEx( $i_rSources, StreamFactoryInterface::class );
+        $this->logger = self::pickInterface( $i_rSources, LoggerInterface::class );
 
     }
 
 
     /**
-     * @param iterable $i_rFactories
+     * @param array<object> $i_rSources
      * @param string $i_stInterface
-     * @return object
+     * @return ?object
      */
-    private static function pickFactory( iterable $i_rFactories, string $i_stInterface ) : object {
+    protected static function pickInterface( array $i_rSources, string $i_stInterface ) : ?object {
         static $facDefault = null;
-        foreach ( $i_rFactories as $factory ) {
+        foreach ( $i_rSources as $factory ) {
             if ( $factory instanceof $i_stInterface ) {
                 return $factory;
             }
@@ -52,8 +64,19 @@ class Client extends ClientDecorator implements ClientInterface {
         if ( null === $facDefault ) {
             $facDefault = new SimpleFactory();
         }
-        assert( is_subclass_of( $facDefault, $i_stInterface ) );
-        return $facDefault;
+        if ( $facDefault instanceof $i_stInterface ) {
+            return $facDefault;
+        }
+        return null;
+    }
+
+
+    protected static function pickInterfaceEx( array $i_rFactories, string $i_stInterface ) : object {
+        $fac = self::pickInterface( $i_rFactories, $i_stInterface );
+        if ( $fac instanceof $i_stInterface ) {
+            return $fac;
+        }
+        throw new InvalidArgumentException( "No source found for interface {$i_stInterface}" );
     }
 
 
@@ -81,13 +104,13 @@ class Client extends ClientDecorator implements ClientInterface {
 
 
     /**
-     * @param iterable<string, string|int|float>|string|StreamInterface $i_body
+     * @param iterable<string, string|int|float>|string|StreamInterface|Stringable $i_body
      * @param iterable<string, string|list<string>> $i_rHeaders
      *
      * Note that if you don't provide an iterable body, you're responsible for
      * setting Content-Type correctly in the provided headers.
      */
-    public function post( UriInterface|string $i_uri, iterable|string|StreamInterface|\Stringable $i_body = '',
+    public function post( UriInterface|string $i_uri, iterable|string|StreamInterface|Stringable $i_body = '',
                           iterable            $i_rHeaders = [] ) : ResponseInterface {
         if ( is_string( $i_uri ) ) {
             $i_uri = $this->uriFactory->createUri( $i_uri );
@@ -106,9 +129,46 @@ class Client extends ClientDecorator implements ClientInterface {
 
 
     public function sendRequest( RequestInterface $request ) : ResponseInterface {
-        $response = parent::sendRequest( $request );
-        return $this->upgradeResponse( $request, $response );
+        $response = $this->upgradeResponse( $request, parent::sendRequest( $request ) );
+        $this->handleFailure( $request, $response );
+        return $response;
+    }
 
+
+    public function setErrorIsAcceptable( bool $i_bErrorIsAcceptable = true ) : static {
+        $this->bErrorIsAcceptable = $i_bErrorIsAcceptable;
+        return $this;
+    }
+
+
+    public function setLogErrors( bool $i_bLogErrors = true ) : static {
+        $this->bLogErrors = $i_bLogErrors;
+        return $this;
+    }
+
+
+    protected function handleFailure( RequestInterface $request, ResponseInterface $response ) : void {
+
+        $uStatus = $response->getStatusCode();
+        $stReason = $response->getReasonPhrase() ?: 'Unknown Error';
+        $stMethod = $request->getMethod();
+        $stUri = strval( $request->getUri() );
+        $stMessage = "HTTP Status {$uStatus} {$stReason} for: {$stMethod} {$stUri}";
+        $bError = $response->isError();
+
+        $uFacility = ( $bError && $this->bLogErrors )
+            ? ( $this->bErrorIsAcceptable ? LOG_INFO : LOG_ERR )
+            : LOG_DEBUG;
+        $this->logger?->log( $uFacility, $stMessage, [
+            'status' => $uStatus,
+            'reason' => $stReason,
+            'method' => $stMethod,
+            'uri' => $stUri,
+        ] );
+
+        if ( $bError && ! $this->bErrorIsAcceptable ) {
+            throw new HttpStatusException( $response, $request, $stMessage, $uStatus );
+        }
     }
 
 
@@ -135,7 +195,8 @@ class Client extends ClientDecorator implements ClientInterface {
         }
         return $i_req
             ->withBody( $this->streamFactory->createStream( $st ) )
-            ->withHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+            ->withHeader( 'Content-Type', 'application/x-www-form-urlencoded' )
+        ;
     }
 
 
