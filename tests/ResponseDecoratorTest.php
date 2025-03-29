@@ -36,11 +36,12 @@ final class ResponseDecoratorTest extends TestCase {
 
     public function testWithProtocolVersion() : void {
         $srq = new SimpleResponse();
-        self::assertSame( '1.1', $srq->getProtocolVersion() );
         $rsp = new ResponseDecorator( $srq );
+        $rsp2 = $rsp->withProtocolVersion( '2.0' );
+        self::assertSame( '2.0', $rsp2->getProtocolVersion() );
 
-        $rsp = $rsp->withProtocolVersion( '2.0' );
-        self::assertSame( '2.0', $rsp->getProtocolVersion() );
+        # Check that the original response is unchanged
+        self::assertSame( '1.1', $rsp->getProtocolVersion() );
     }
 
 
