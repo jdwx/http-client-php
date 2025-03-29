@@ -8,8 +8,14 @@ namespace JDWX\HttpClient;
 
 
 use InvalidArgumentException;
+use JDWX\HttpClient\Exceptions\ClientException;
 use JDWX\HttpClient\Exceptions\HttpStatusException;
+use JDWX\HttpClient\Exceptions\NetworkException;
+use JDWX\HttpClient\Exceptions\RequestException;
 use JDWX\HttpClient\Simple\SimpleFactory;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
+use Psr\Http\Client\RequestExceptionInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -18,6 +24,7 @@ use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
 use Stringable;
+use Throwable;
 
 
 class Client extends ClientDecorator implements ClientInterface {
@@ -129,7 +136,19 @@ class Client extends ClientDecorator implements ClientInterface {
 
 
     public function sendRequest( RequestInterface $request ) : ResponseInterface {
-        $response = $this->upgradeResponse( $request, parent::sendRequest( $request ) );
+        try {
+            $response = parent::sendRequest( $request );
+        } catch ( NetworkExceptionInterface $ex ) {
+            throw NetworkException::from( $ex );
+        } catch ( RequestExceptionInterface $ex ) {
+            throw RequestException::from( $ex );
+        } catch ( ClientExceptionInterface $ex ) {
+            throw ClientException::from( $ex );
+        } catch ( Throwable $ex ) {
+            throw new ClientException( 'Unexpected client error: ' . $ex->getMessage(), $ex->getCode(), $ex );
+        }
+
+        $response = $this->upgradeResponse( $request, $response );
         $this->handleFailure( $request, $response );
         return $response;
     }

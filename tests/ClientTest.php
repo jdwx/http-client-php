@@ -5,9 +5,13 @@ declare( strict_types = 1 );
 
 
 use JDWX\HttpClient\Client;
+use JDWX\HttpClient\Exceptions\ClientException;
 use JDWX\HttpClient\Exceptions\HttpStatusException;
+use JDWX\HttpClient\Exceptions\NetworkException;
+use JDWX\HttpClient\Exceptions\RequestException;
 use JDWX\HttpClient\Response;
 use JDWX\HttpClient\Simple\SimpleFactory;
+use JDWX\HttpClient\Simple\SimpleRequest;
 use JDWX\HttpClient\Simple\SimpleResponse;
 use JDWX\HttpClient\Simple\SimpleStringStream;
 use JDWX\HttpClient\Simple\SimpleUri;
@@ -93,6 +97,46 @@ final class ClientTest extends TestCase {
         ] );
         $req = array_shift( $backend->rRequests );
         self::assertSame( 'TestValue', $req->getHeaderLine( 'X-Test-Header' ) );
+    }
+
+
+    public function testSendRequestForNetworkException() : void {
+        $req = new SimpleRequest( i_uri: '/' );
+        $ex = new NetworkException( $req );
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( NetworkException::class );
+        $client->sendRequest( $req );
+    }
+
+
+    public function testSendRequestForRequestException() : void {
+        $req = new SimpleRequest( i_uri: '/' );
+        $ex = new RequestException( $req );
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( RequestException::class );
+        $client->sendRequest( $req );
+    }
+
+
+    public function testSendRequestForClientException() : void {
+        $req = new SimpleRequest( i_uri: '/' );
+        $ex = new ClientException();
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( ClientException::class );
+        $client->sendRequest( $req );
+    }
+
+
+    public function testSendRequestForRuntimeError() : void {
+        $req = new SimpleRequest( i_uri: '/' );
+        $ex = new RuntimeException( 'TEST_ERROR' );
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( ClientException::class );
+        $client->sendRequest( $req );
     }
 
 
