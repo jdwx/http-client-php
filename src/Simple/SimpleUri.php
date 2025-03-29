@@ -44,20 +44,7 @@ readonly class SimpleUri implements UriInterface, \Stringable {
         if ( is_array( $i_uri ) ) {
             return static::fromArray( $i_uri );
         }
-        $stUserInfo = $i_uri->getUserInfo();
-        [ $stUser, $stPassword ] = $stUserInfo
-            ? array_merge( explode( ':', $stUserInfo, 2 ), [ '' ] )
-            : [ '', '' ];
-        return new static(
-            $i_uri->getScheme(),
-            $stUser,
-            $stPassword,
-            $i_uri->getHost(),
-            $i_uri->getPort(),
-            $i_uri->getPath(),
-            $i_uri->getQuery(),
-            $i_uri->getFragment()
-        );
+        return static::fromUri( $i_uri );
     }
 
 
@@ -85,6 +72,24 @@ readonly class SimpleUri implements UriInterface, \Stringable {
             throw new \InvalidArgumentException( 'Invalid URI: ' . $i_stUri );
         }
         return static::fromArray( $r );
+    }
+
+
+    public static function fromUri( UriInterface $i_uri ) : static {
+        $stUserInfo = $i_uri->getUserInfo();
+        [ $stUser, $stPassword ] = $stUserInfo
+            ? array_merge( explode( ':', $stUserInfo, 2 ), [ '' ] )
+            : [ '', '' ];
+        return new static(
+            $i_uri->getScheme(),
+            $stUser,
+            $stPassword,
+            $i_uri->getHost(),
+            $i_uri->getPort(),
+            $i_uri->getPath(),
+            $i_uri->getQuery(),
+            $i_uri->getFragment()
+        );
     }
 
 

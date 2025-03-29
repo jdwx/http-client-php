@@ -82,6 +82,14 @@ class SimpleUriTest extends TestCase {
         $uri = SimpleUri::from( 'https://foo:bar@example.com:12345/baz/qux/?quux=1&corge=2#grault' );
         $uri2 = SimpleUri::from( $uri );
         self::assertSame( strval( $uri ), strval( $uri2 ) );
+
+        $uri = SimpleUri::from( 'https://example.com/' );
+        $uri2 = SimpleUri::from( $uri );
+        self::assertSame( strval( $uri ), strval( $uri2 ) );
+
+        $uri = SimpleUri::from( '/foo/bar/baz' );
+        $uri2 = SimpleUri::from( $uri );
+        self::assertSame( strval( $uri ), strval( $uri2 ) );
     }
 
 
