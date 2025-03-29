@@ -30,13 +30,13 @@ use Throwable;
 class Client extends ClientDecorator implements ClientInterface {
 
 
+    protected ?LoggerInterface $logger;
+
     private RequestFactoryInterface $requestFactory;
 
     private UriFactoryInterface $uriFactory;
 
     private StreamFactoryInterface $streamFactory;
-
-    private ?LoggerInterface $logger;
 
     private bool $bErrorIsAcceptable = false;
 
