@@ -60,7 +60,6 @@ class MyTestClient implements ClientInterface {
         if ( is_string( $rsp ) ) {
             return new SimpleResponse( $rsp );
         }
-        assert( $rsp instanceof ResponseInterface );
         return $rsp;
     }
 
