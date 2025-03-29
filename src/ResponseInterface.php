@@ -40,6 +40,9 @@ interface ResponseInterface extends \Psr\Http\Message\ResponseInterface {
     public function isContentTypeType( string $i_stType ) : bool;
 
 
+    public function isError() : bool;
+
+
     public function isRedirect() : bool;
 
 
