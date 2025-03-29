@@ -15,10 +15,12 @@ readonly class SimpleUri implements UriInterface, \Stringable {
 
     public string $stScheme;
 
+    public string $stPath;
+
 
     final public function __construct( string        $stScheme = '', public string $stUser = '',
                                        public string $stPassword = '', public string $stHost = '',
-                                       public ?int   $nuPort = null, public string $stPath = '',
+                                       public ?int   $nuPort = null, string $stPath = '',
                                        public string $stQuery = '', public string $stFragment = '' ) {
         # This catches you if you forget and pass the full URI as the only
         # argument to the constructor. This is a common mistake.
@@ -26,7 +28,12 @@ readonly class SimpleUri implements UriInterface, \Stringable {
             // Scheme must not contain a colon
             throw new \InvalidArgumentException( 'Invalid scheme: ' . $stScheme );
         }
+        if ( '' === $stPath && $stHost ) {
+            # If the path is empty and the host is set, set the path to '/'
+            $stPath = '/';
+        }
         $this->stScheme = strtolower( $stScheme );
+        $this->stPath = $stPath;
     }
 
 

@@ -51,6 +51,27 @@ class SimpleUriTest extends TestCase {
         self::assertSame( 'baz=1&qux=2', $uri->stQuery );
         self::assertSame( 'quux', $uri->stFragment );
 
+        $uri = SimpleUri::from( 'https://example.com' );
+        self::assertSame( 'https', $uri->stScheme );
+        self::assertSame( 'example.com', $uri->stHost );
+        self::assertNull( $uri->nuPort ); // No port specified
+        self::assertSame( '', $uri->stUser ); // No user info specified
+        self::assertSame( '', $uri->stPassword ); // No password specified
+        self::assertSame( '/', $uri->stPath ); // No path specified
+        self::assertSame( '', $uri->stQuery ); // No query specified
+        self::assertSame( '', $uri->stFragment ); // No fragment specified
+
+        $uri = SimpleUri::from( 'https://example.com/' );
+        self::assertSame( 'https', $uri->stScheme );
+        self::assertSame( 'example.com', $uri->stHost );
+        self::assertNull( $uri->nuPort ); // No port specified
+        self::assertSame( '', $uri->stUser ); // No user info specified
+        self::assertSame( '', $uri->stPassword ); // No password specified
+        self::assertSame( '/', $uri->stPath ); // Path should be '/'
+        self::assertSame( '', $uri->stQuery ); // No query specified
+        self::assertSame( '', $uri->stFragment ); // No fragment specified
+
+
         self::expectException( InvalidArgumentException::class );
         SimpleUri::from( 'https:////example.com' );
 
