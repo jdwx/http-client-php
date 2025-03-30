@@ -14,7 +14,44 @@ use Psr\Http\Message\UriInterface;
 
 trait RequestTrait {
 
+
     use MessageTrait;
+
+
+    abstract public function getRequest() : RequestInterface;
+
+
+    public function getMethod() : string {
+        return $this->getRequest()->getMethod();
+    }
+
+
+    public function getRequestTarget() : string {
+        return $this->getRequest()->getRequestTarget();
+    }
+
+
+    public function getUri() : UriInterface {
+        return $this->getRequest()->getUri();
+    }
+
+
+    /** @suppress PhanTypeMismatchReturn */
+    public function withMethod( string $method ) : static {
+        return $this->cloneRequest( $this->getRequest()->withMethod( $method ) );
+    }
+
+
+    /** @suppress PhanTypeMismatchReturn */
+    public function withRequestTarget( mixed $requestTarget ) : static {
+        return $this->cloneRequest( $this->getRequest()->withRequestTarget( $requestTarget ) );
+    }
+
+
+    /** @suppress PhanTypeMismatchReturn */
+    public function withUri( UriInterface $uri, bool $preserveHost = false ) : static {
+        return $this->cloneRequest( $this->getRequest()->withUri( $uri, $preserveHost ) );
+    }
 
 
     /** @suppress PhanTypeMismatchReturn */
@@ -27,44 +64,8 @@ trait RequestTrait {
     abstract protected function cloneRequest( RequestInterface $request ) : static;
 
 
-    protected function fromMessage() : MessageInterface {
-        return $this->fromRequest();
-    }
-
-
-    abstract protected function fromRequest() : RequestInterface;
-
-
-    public function getMethod() : string {
-        return $this->fromRequest()->getMethod();
-    }
-
-
-    public function getRequestTarget() : string {
-        return $this->fromRequest()->getRequestTarget();
-    }
-
-
-    public function getUri() : UriInterface {
-        return $this->fromRequest()->getUri();
-    }
-
-
-    /** @suppress PhanTypeMismatchReturn */
-    public function withMethod( string $method ) : static {
-        return $this->cloneRequest( $this->fromRequest()->withMethod( $method ) );
-    }
-
-
-    /** @suppress PhanTypeMismatchReturn */
-    public function withRequestTarget( mixed $requestTarget ) : static {
-        return $this->cloneRequest( $this->fromRequest()->withRequestTarget( $requestTarget ) );
-    }
-
-
-    /** @suppress PhanTypeMismatchReturn */
-    public function withUri( UriInterface $uri, bool $preserveHost = false ) : static {
-        return $this->cloneRequest( $this->fromRequest()->withUri( $uri, $preserveHost ) );
+    protected function getMessage() : MessageInterface {
+        return $this->getRequest();
     }
 
 

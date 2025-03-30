@@ -16,18 +16,18 @@ class MessageDecorator implements MessageInterface {
     use MessageTrait;
 
 
-    public function __construct( private MessageInterface $message ) {}
+    public function __construct( private MessageInterface $message ) { }
+
+
+    public function getMessage() : MessageInterface {
+        return $this->message;
+    }
 
 
     protected function cloneMessage( MessageInterface $message ) : static {
         $x = clone $this;
         $x->message = $message;
         return $x;
-    }
-
-
-    protected function fromMessage() : MessageInterface {
-        return $this->message;
     }
 
 

@@ -16,18 +16,18 @@ class RequestDecorator implements RequestInterface {
     use RequestTrait;
 
 
-    public function __construct( private RequestInterface $request ) {}
+    public function __construct( private RequestInterface $request ) { }
 
 
-    public function cloneRequest( RequestInterface $request ) : static {
-        $x = clone $this;
-        $x->request = $request;
-        return $x;
+    public function getRequest() : RequestInterface {
+        return $this->request;
     }
 
 
-    protected function fromRequest() : RequestInterface {
-        return $this->request;
+    protected function cloneRequest( RequestInterface $request ) : static {
+        $x = clone $this;
+        $x->request = $request;
+        return $x;
     }
 
 

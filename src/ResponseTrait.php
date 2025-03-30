@@ -18,19 +18,22 @@ trait ResponseTrait {
 
 
     public function getReasonPhrase() : string {
-        return $this->fromResponse()->getReasonPhrase();
+        return $this->getResponse()->getReasonPhrase();
     }
 
 
     public function getStatusCode() : int {
-        return $this->fromResponse()->getStatusCode();
+        return $this->getResponse()->getStatusCode();
     }
 
 
     /** @suppress PhanTypeMismatchReturn */
     public function withStatus( int $code, string $reasonPhrase = '' ) : static {
-        return $this->cloneResponse( $this->fromResponse()->withStatus( $code, $reasonPhrase ) );
+        return $this->cloneResponse( $this->getResponse()->withStatus( $code, $reasonPhrase ) );
     }
+
+
+    abstract public function getResponse() : ResponseInterface;
 
 
     /** @suppress PhanTypeMismatchReturn */
@@ -43,12 +46,9 @@ trait ResponseTrait {
     abstract protected function cloneResponse( ResponseInterface $response ) : static;
 
 
-    protected function fromMessage() : MessageInterface {
-        return $this->fromResponse();
+    protected function getMessage() : MessageInterface {
+        return $this->getResponse();
     }
-
-
-    abstract protected function fromResponse() : ResponseInterface;
 
 
 }

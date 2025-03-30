@@ -15,32 +15,32 @@ trait MessageTrait {
 
 
     public function getBody() : StreamInterface {
-        return $this->fromMessage()->getBody();
+        return $this->getMessage()->getBody();
     }
 
 
     public function getHeader( string $name ) : array {
-        return $this->fromMessage()->getHeader( $name );
+        return $this->getMessage()->getHeader( $name );
     }
 
 
     public function getHeaderLine( string $name ) : string {
-        return $this->fromMessage()->getHeaderLine( $name );
+        return $this->getMessage()->getHeaderLine( $name );
     }
 
 
     public function getHeaders() : array {
-        return $this->fromMessage()->getHeaders();
+        return $this->getMessage()->getHeaders();
     }
 
 
     public function getProtocolVersion() : string {
-        return $this->fromMessage()->getProtocolVersion();
+        return $this->getMessage()->getProtocolVersion();
     }
 
 
     public function hasHeader( string $name ) : bool {
-        return $this->fromMessage()->hasHeader( $name );
+        return $this->getMessage()->hasHeader( $name );
     }
 
 
@@ -51,13 +51,13 @@ trait MessageTrait {
      * @suppress PhanTypeMismatchReturn
      */
     public function withAddedHeader( string $name, $value ) : static {
-        return $this->cloneMessage( $this->fromMessage()->withAddedHeader( $name, $value ) );
+        return $this->cloneMessage( $this->getMessage()->withAddedHeader( $name, $value ) );
     }
 
 
     /** @suppress PhanTypeMismatchReturn */
     public function withBody( StreamInterface $body ) : static {
-        return $this->cloneMessage( $this->fromMessage()->withBody( $body ) );
+        return $this->cloneMessage( $this->getMessage()->withBody( $body ) );
     }
 
 
@@ -68,26 +68,26 @@ trait MessageTrait {
      * @suppress PhanTypeMismatchReturn
      */
     public function withHeader( string $name, $value ) : static {
-        return $this->cloneMessage( $this->fromMessage()->withHeader( $name, $value ) );
+        return $this->cloneMessage( $this->getMessage()->withHeader( $name, $value ) );
     }
 
 
     /** @suppress PhanTypeMismatchReturn */
     public function withProtocolVersion( string $version ) : static {
-        return $this->cloneMessage( $this->fromMessage()->withProtocolVersion( $version ) );
+        return $this->cloneMessage( $this->getMessage()->withProtocolVersion( $version ) );
     }
 
 
     /** @suppress PhanTypeMismatchReturn */
     public function withoutHeader( string $name ) : static {
-        return $this->cloneMessage( $this->fromMessage()->withoutHeader( $name ) );
+        return $this->cloneMessage( $this->getMessage()->withoutHeader( $name ) );
     }
 
 
+    abstract public function getMessage() : MessageInterface;
+
+
     abstract protected function cloneMessage( MessageInterface $message ) : static;
-
-
-    abstract protected function fromMessage() : MessageInterface;
 
 
 }

@@ -16,18 +16,18 @@ class ResponseDecorator implements ResponseInterface {
     use ResponseTrait;
 
 
-    public function __construct( private ResponseInterface $response ) {}
+    public function __construct( private ResponseInterface $response ) { }
+
+
+    public function getResponse() : ResponseInterface {
+        return $this->response;
+    }
 
 
     protected function cloneResponse( ResponseInterface $response ) : static {
         $x = clone $this;
         $x->response = $response;
         return $x;
-    }
-
-
-    protected function fromResponse() : ResponseInterface {
-        return $this->response;
     }
 
 
