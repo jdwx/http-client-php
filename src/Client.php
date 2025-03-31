@@ -45,7 +45,7 @@ class Client extends ClientDecorator implements ClientInterface {
 
     public function __construct( object ...$i_rSources ) {
         $client = self::pickInterfaceEx( $i_rSources, \Psr\Http\Client\ClientInterface::class );
-        assert( $client instanceof ClientInterface );
+        assert( $client instanceof \Psr\Http\Client\ClientInterface );
         parent::__construct( $client );
 
         $this->requestFactory = self::pickInterfaceEx( $i_rSources, RequestFactoryInterface::class );
@@ -166,31 +166,6 @@ class Client extends ClientDecorator implements ClientInterface {
     }
 
 
-    protected function handleFailure( RequestInterface $request, ResponseInterface $response ) : void {
-
-        $uStatus = $response->getStatusCode();
-        $stReason = $response->getReasonPhrase() ?: 'Unknown Error';
-        $stMethod = $request->getMethod();
-        $stUri = strval( $request->getUri() );
-        $stMessage = "HTTP Status {$uStatus} {$stReason} for: {$stMethod} {$stUri}";
-        $bError = $response->isError();
-
-        $uFacility = ( $bError && $this->bLogErrors )
-            ? ( $this->bErrorIsAcceptable ? LOG_INFO : LOG_ERR )
-            : LOG_DEBUG;
-        $this->logger?->log( $uFacility, $stMessage, [
-            'status' => $uStatus,
-            'reason' => $stReason,
-            'method' => $stMethod,
-            'uri' => $stUri,
-        ] );
-
-        if ( $bError && ! $this->bErrorIsAcceptable ) {
-            throw new HttpStatusException( $response, $request, $stMessage, $uStatus );
-        }
-    }
-
-
     /** @param iterable<string, string|list<string>> $i_rHeaders */
     protected function addHeadersToRequest( RequestInterface $i_req, iterable $i_rHeaders ) : RequestInterface {
         foreach ( $i_rHeaders as $stHeader => $value ) {
@@ -214,8 +189,32 @@ class Client extends ClientDecorator implements ClientInterface {
         }
         return $i_req
             ->withBody( $this->streamFactory->createStream( $st ) )
-            ->withHeader( 'Content-Type', 'application/x-www-form-urlencoded' )
-        ;
+            ->withHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+    }
+
+
+    protected function handleFailure( RequestInterface $request, ResponseInterface $response ) : void {
+
+        $uStatus = $response->getStatusCode();
+        $stReason = $response->getReasonPhrase() ?: 'Unknown Error';
+        $stMethod = $request->getMethod();
+        $stUri = strval( $request->getUri() );
+        $stMessage = "HTTP Status {$uStatus} {$stReason} for: {$stMethod} {$stUri}";
+        $bError = $response->isError();
+
+        $uFacility = ( $bError && $this->bLogErrors )
+            ? ( $this->bErrorIsAcceptable ? LOG_INFO : LOG_ERR )
+            : LOG_DEBUG;
+        $this->logger?->log( $uFacility, $stMessage, [
+            'status' => $uStatus,
+            'reason' => $stReason,
+            'method' => $stMethod,
+            'uri' => $stUri,
+        ] );
+
+        if ( $bError && ! $this->bErrorIsAcceptable ) {
+            throw new HttpStatusException( $response, $request, $stMessage, $uStatus );
+        }
     }
 
 
