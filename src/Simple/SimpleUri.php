@@ -24,7 +24,7 @@ readonly class SimpleUri implements UriInterface, \Stringable {
                                        public string $stQuery = '', public string $stFragment = '' ) {
         # This catches you if you forget and pass the full URI as the only
         # argument to the constructor. This is a common mistake.
-        if ( str_contains( $stScheme, ':' ) ) {
+        if ( str_contains( $stScheme, ':' ) || str_contains( $stScheme, '/' ) ) {
             // Scheme must not contain a colon
             throw new \InvalidArgumentException( 'Invalid scheme: ' . $stScheme );
         }
