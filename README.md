@@ -2,7 +2,7 @@
 
 Module for PHP HTTP clients. Builds as much as possible off of PSR without introducing dependencies on any specific HTTP client implementation.
 
-# Installation
+## Installation
 
 You can require it directly with Composer:
 
@@ -48,8 +48,6 @@ var_dump( $data );
 ## Stability
 
 This module is designed to stick as closely as possible to the PSR HTTP client interfaces, so it should be fairly stable. Additional functionality may be somewhat more likely to evolve over time as more use cases are encountered.
-
-A ClientDecorator class may appear in a future version.
 
 ## History
 
