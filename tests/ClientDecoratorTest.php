@@ -5,7 +5,7 @@ declare( strict_types = 1 );
 
 
 use JDWX\HttpClient\ClientDecorator;
-use JDWX\HttpClient\Simple\SimpleRequest;
+use JDWX\PsrHttp\Request as PsrRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Support\MyTestClient;
@@ -20,7 +20,7 @@ final class ClientDecoratorTest extends TestCase {
 
     public function testSendRequest() : void {
         $backend = new MyTestClient( [ '/' => 'TEST_RESPONSE' ] );
-        $request = new SimpleRequest();
+        $request = new PsrRequest();
         $client = new ClientDecorator( $backend );
         $response = $client->sendRequest( $request );
         self::assertSame( 'TEST_RESPONSE', $response->getBody()->getContents() );

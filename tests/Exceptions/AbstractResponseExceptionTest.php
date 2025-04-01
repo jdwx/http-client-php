@@ -13,8 +13,8 @@ use JDWX\HttpClient\Exceptions\HttpHeaderException;
 use JDWX\HttpClient\Exceptions\HttpStatusException;
 use JDWX\HttpClient\Exceptions\NoBodyException;
 use JDWX\HttpClient\Response;
-use JDWX\HttpClient\Simple\SimpleRequest;
-use JDWX\HttpClient\Simple\SimpleResponse;
+use JDWX\PsrHttp\Request as PsrRequest;
+use JDWX\PsrHttp\Response as PsrResponse;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -24,8 +24,8 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testFromForCompatibleType() : void {
-        $srq = new SimpleRequest();
-        $srp = new SimpleResponse();
+        $srq = new PsrRequest();
+        $srp = new PsrResponse();
         $pex = new HttpHeaderException( $srp, $srq );
         $ex = HttpStatusException::from( $pex );
         self::assertSame( $srq, $ex->getRequest() );
@@ -34,7 +34,7 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testFromForNoRequest() : void {
-        $srp = new SimpleResponse();
+        $srp = new PsrResponse();
         $pex = new ClientException( 'No request provided' );
         self::expectException( ClientException::class );
         NoBodyException::from( $pex, i_response: $srp );
@@ -42,7 +42,7 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testFromForNoResponse() : void {
-        $srq = new SimpleRequest();
+        $srq = new PsrRequest();
         $pex = new ClientException( 'No response provided' );
         self::expectException( ClientException::class );
         NoBodyException::from( $pex, i_request: $srq );
@@ -50,8 +50,8 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testFromForSameType() : void {
-        $srq = new SimpleRequest();
-        $srp = new SimpleResponse();
+        $srq = new PsrRequest();
+        $srp = new PsrResponse();
         $ex = new NoBodyException( $srp, $srq );
         $ex2 = NoBodyException::from( $ex );
         self::assertSame( $ex, $ex2 );
@@ -59,8 +59,8 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testFromForSeparateRequestAndResponse() : void {
-        $srq = new SimpleRequest();
-        $srp = new SimpleResponse();
+        $srq = new PsrRequest();
+        $srp = new PsrResponse();
         $pex = new ClientException();
         $ex = NoBodyException::from( $pex, $srq, $srp );
         self::assertSame( $srq, $ex->getRequest() );
@@ -69,8 +69,8 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testFromForSeparateResponseOnly() : void {
-        $srq = new SimpleRequest();
-        $srp = new SimpleResponse();
+        $srq = new PsrRequest();
+        $srp = new PsrResponse();
         $rsp = new Response( $srq, $srp );
         $pex = new ClientException();
         $ex = NoBodyException::from( $pex, i_response: $rsp );
@@ -80,8 +80,8 @@ final class AbstractResponseExceptionTest extends TestCase {
 
 
     public function testGetResponse() : void {
-        $srq = new SimpleRequest();
-        $srp = new SimpleResponse();
+        $srq = new PsrRequest();
+        $srp = new PsrResponse();
         $ex = new NoBodyException( $srp, $srq );
         self::assertSame( $srq, $ex->getRequest() );
         self::assertSame( $srp, $ex->getResponse() );

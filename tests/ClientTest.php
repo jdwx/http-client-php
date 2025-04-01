@@ -10,11 +10,11 @@ use JDWX\HttpClient\Exceptions\HttpStatusException;
 use JDWX\HttpClient\Exceptions\NetworkException;
 use JDWX\HttpClient\Exceptions\RequestException;
 use JDWX\HttpClient\Response;
-use JDWX\HttpClient\Simple\SimpleFactory;
-use JDWX\HttpClient\Simple\SimpleRequest;
-use JDWX\HttpClient\Simple\SimpleResponse;
-use JDWX\HttpClient\Simple\SimpleStringStream;
-use JDWX\HttpClient\Simple\SimpleUri;
+use JDWX\PsrHttp\Factory as PsrFactory;
+use JDWX\PsrHttp\Request as PsrRequest;
+use JDWX\PsrHttp\Response as PsrResponse;
+use JDWX\PsrHttp\StringStream;
+use JDWX\PsrHttp\Uri;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -100,49 +100,9 @@ final class ClientTest extends TestCase {
     }
 
 
-    public function testSendRequestForNetworkException() : void {
-        $req = new SimpleRequest( i_uri: '/' );
-        $ex = new NetworkException( $req );
-        $backend = new MyTestClient( [ '/' => $ex ] );
-        $client = new Client( $backend );
-        self::expectException( NetworkException::class );
-        $client->sendRequest( $req );
-    }
-
-
-    public function testSendRequestForRequestException() : void {
-        $req = new SimpleRequest( i_uri: '/' );
-        $ex = new RequestException( $req );
-        $backend = new MyTestClient( [ '/' => $ex ] );
-        $client = new Client( $backend );
-        self::expectException( RequestException::class );
-        $client->sendRequest( $req );
-    }
-
-
-    public function testSendRequestForClientException() : void {
-        $req = new SimpleRequest( i_uri: '/' );
-        $ex = new ClientException();
-        $backend = new MyTestClient( [ '/' => $ex ] );
-        $client = new Client( $backend );
-        self::expectException( ClientException::class );
-        $client->sendRequest( $req );
-    }
-
-
-    public function testSendRequestForRuntimeError() : void {
-        $req = new SimpleRequest( i_uri: '/' );
-        $ex = new RuntimeException( 'TEST_ERROR' );
-        $backend = new MyTestClient( [ '/' => $ex ] );
-        $client = new Client( $backend );
-        self::expectException( ClientException::class );
-        $client->sendRequest( $req );
-    }
-
-
     public function testGetForProvidedFactory() : void {
         $backend = new MyTestClient( [ '/' => 'TEST_CONTENT' ] );
-        $client = new Client( $backend, new SimpleFactory() );
+        $client = new Client( $backend, new PsrFactory() );
         $client->get( '/' );
         $req = array_shift( $backend->rRequests );
         self::assertInstanceOf( RequestInterface::class, $req );
@@ -192,10 +152,10 @@ final class ClientTest extends TestCase {
 
 
     public function testGetForUri() : void {
-        $srp = new SimpleResponse( 'TEST_CONTENT' );
+        $srp = new PsrResponse( 'TEST_CONTENT' );
         $backend = new MyTestClient( [ '/foo' => $srp ] );
         $client = new Client( $backend );
-        $uri = SimpleUri::from( 'https://example.com/foo?bar=1&baz=2' );
+        $uri = Uri::from( 'https://example.com/foo?bar=1&baz=2' );
         $rsp = $client->get( $uri );
         self::assertSame( 'TEST_CONTENT', $rsp->getBody()->getContents() );
     }
@@ -217,7 +177,7 @@ final class ClientTest extends TestCase {
     public function testPostForBodyStream() : void {
         $backend = new MyTestClient( [ '/' => 'TEST_CONTENT' ] );
         $client = new Client( $backend );
-        $stream = new SimpleStringStream( 'TEST_BODY' );
+        $stream = new StringStream( 'TEST_BODY' );
         $client->post( '/', $stream );
         $req = array_shift( $backend->rRequests );
         self::assertSame( 'TEST_BODY', $req->getBody()->getContents() );
@@ -249,12 +209,52 @@ final class ClientTest extends TestCase {
     public function testPostForUri() : void {
         $backend = new MyTestClient( [ '/foo' => 'TEST_CONTENT' ] );
         $client = new Client( $backend );
-        $uri = SimpleUri::from( 'https://www.example.com/foo' );
+        $uri = Uri::from( 'https://www.example.com/foo' );
         $rsp = $client->post( $uri );
         self::assertSame( 'TEST_CONTENT', $rsp->getBody()->getContents() );
         $req = array_shift( $backend->rRequests );
         self::assertSame( 'POST', $req->getMethod() );
         self::assertSame( '/foo', $req->getRequestTarget() );
+    }
+
+
+    public function testSendRequestForClientException() : void {
+        $req = new PsrRequest( i_uri: '/' );
+        $ex = new ClientException();
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( ClientException::class );
+        $client->sendRequest( $req );
+    }
+
+
+    public function testSendRequestForNetworkException() : void {
+        $req = new PsrRequest( i_uri: '/' );
+        $ex = new NetworkException( $req );
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( NetworkException::class );
+        $client->sendRequest( $req );
+    }
+
+
+    public function testSendRequestForRequestException() : void {
+        $req = new PsrRequest( i_uri: '/' );
+        $ex = new RequestException( $req );
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( RequestException::class );
+        $client->sendRequest( $req );
+    }
+
+
+    public function testSendRequestForRuntimeError() : void {
+        $req = new PsrRequest( i_uri: '/' );
+        $ex = new RuntimeException( 'TEST_ERROR' );
+        $backend = new MyTestClient( [ '/' => $ex ] );
+        $client = new Client( $backend );
+        self::expectException( ClientException::class );
+        $client->sendRequest( $req );
     }
 
 

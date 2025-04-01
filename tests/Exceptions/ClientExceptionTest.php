@@ -9,7 +9,7 @@ namespace Exceptions;
 
 use JDWX\HttpClient\Exceptions\ClientException;
 use JDWX\HttpClient\Exceptions\RequestException;
-use JDWX\HttpClient\Simple\SimpleRequest;
+use JDWX\PsrHttp\Request as PsrRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
@@ -19,7 +19,7 @@ final class ClientExceptionTest extends TestCase {
 
 
     public function testFromForCompatibleType() : void {
-        $srq = new SimpleRequest();
+        $srq = new PsrRequest();
         $pex = new RequestException( $srq );
         $ex = ClientException::from( $pex );
         self::assertSame( $pex, $ex );

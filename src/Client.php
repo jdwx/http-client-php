@@ -12,7 +12,7 @@ use JDWX\HttpClient\Exceptions\ClientException;
 use JDWX\HttpClient\Exceptions\HttpStatusException;
 use JDWX\HttpClient\Exceptions\NetworkException;
 use JDWX\HttpClient\Exceptions\RequestException;
-use JDWX\HttpClient\Simple\SimpleFactory;
+use JDWX\PsrHttp\Factory as PsrFactory;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
 use Psr\Http\Client\RequestExceptionInterface;
@@ -69,7 +69,7 @@ class Client extends ClientDecorator implements ClientInterface {
             }
         }
         if ( null === $facDefault ) {
-            $facDefault = new SimpleFactory();
+            $facDefault = new PsrFactory();
         }
         if ( $facDefault instanceof $i_stInterface ) {
             return $facDefault;

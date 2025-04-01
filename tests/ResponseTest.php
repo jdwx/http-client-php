@@ -7,9 +7,9 @@ declare( strict_types = 1 );
 use JDWX\HttpClient\Exceptions\HttpHeaderException;
 use JDWX\HttpClient\Exceptions\NoBodyException;
 use JDWX\HttpClient\Response;
-use JDWX\HttpClient\Simple\SimpleRequest;
-use JDWX\HttpClient\Simple\SimpleResponse;
-use JDWX\HttpClient\Simple\SimpleStringStream;
+use JDWX\PsrHttp\Request as PsrRequest;
+use JDWX\PsrHttp\Response as PsrResponse;
+use JDWX\PsrHttp\StringStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
@@ -33,7 +33,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testBodyForReadEOFNotSeekable() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->bSeekable = false;
         $base = $this->newResponse( $body );
 
@@ -45,7 +45,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testBodyForReadEOFSeekable() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $base = $this->newResponse( $body );
 
         $body->seek( 0, SEEK_END );
@@ -55,7 +55,7 @@ final class ResponseTest extends TestCase {
 
     public function testBodyForReadLateNotSeekable() : void {
         $log = new MyTestLogger();
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->bSeekable = false;
         $base = $this->newResponse( $body, i_log: $log );
 
@@ -66,7 +66,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testBodyForReadLateSeekable() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->read( 5 );
         $base = $this->newResponse( $body );
         self::assertSame( 'TEST_BODY', $base->body() );
@@ -74,7 +74,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testBodyForReadTwiceNotSeekable() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->bSeekable = false;
         $base = $this->newResponse( $body );
 
@@ -84,7 +84,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testBodyForReadTwiceSeekable() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->bSeekable = true;
         $base = $this->newResponse( $body );
 
@@ -100,7 +100,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testGetBareContentTypeForOne() : void {
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $rsp = $rsp->withHeader( 'Content-Type', 'multipart/form-data; boundary=ExampleBoundaryString' );
         $base = $this->newResponse( $rsp );
         self::assertSame( 'multipart/form-data', $base->getBareContentType() );
@@ -108,7 +108,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testGetBareContentTypeForTwo() : void {
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $rsp = $rsp->withHeader( 'Content-Type', [
             'application/json',
             'text/html',
@@ -120,7 +120,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetHeaderOneExForNone() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::expectException( HttpHeaderException::class );
         $base->getHeaderOneEx( 'content-type' );
@@ -129,7 +129,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetHeaderOneExForOne() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $rsp = $rsp->withHeader( 'Content-Type', 'application/json' );
         $base = $this->newResponse( $rsp );
         self::assertSame( 'application/json', $base->getHeaderOneEx( 'content-type' ) );
@@ -138,7 +138,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetHeaderOneExForTwo() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $rsp = $rsp->withHeader( 'Content-Type', [
             'application/json',
             'text/html',
@@ -151,7 +151,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetHeaderOneForNone() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertNull( $base->getHeaderOne( 'content-type' ) );
     }
@@ -159,7 +159,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetHeaderOneForOne() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $rsp = $rsp->withHeader( 'Content-Type', 'application/json' );
         $base = $this->newResponse( $rsp );
         self::assertSame( 'application/json', $base->getHeaderOne( 'content-type' ) );
@@ -168,7 +168,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetHeaderOneForTwo() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $rsp = $rsp->withHeader( 'Content-Type', [
             'application/json',
             'text/html',
@@ -180,7 +180,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetRequest() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertInstanceOf( RequestInterface::class, $base->getRequest() );
     }
@@ -188,7 +188,7 @@ final class ResponseTest extends TestCase {
 
     public function testGetStatusCode() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertSame( 200, $base->getStatusCode() );
     }
@@ -196,7 +196,7 @@ final class ResponseTest extends TestCase {
 
     public function testIsContentType() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertFalse( $base->isContentType( 'text', 'plain' ) );
 
@@ -218,7 +218,7 @@ final class ResponseTest extends TestCase {
 
     public function testIsContentTypeLoose() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertFalse( $base->isContentTypeLoose( 'text', 'plain' ) );
 
@@ -244,7 +244,7 @@ final class ResponseTest extends TestCase {
 
     public function testIsContentTypeSubtype() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertFalse( $base->isContentTypeSubtype( 'plain' ) );
 
@@ -278,7 +278,7 @@ final class ResponseTest extends TestCase {
 
     public function testIsContentTypeType() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertFalse( $base->isContentTypeType( 'text' ) );
 
@@ -297,7 +297,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testIsError() : void {
-        $srp = new SimpleResponse();
+        $srp = new PsrResponse();
         $rsp = $this->newResponse();
         self::assertFalse( $rsp->isError() );
 
@@ -322,7 +322,7 @@ final class ResponseTest extends TestCase {
 
     public function testIsRedirect() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertFalse( $base->isRedirect() );
 
@@ -342,7 +342,7 @@ final class ResponseTest extends TestCase {
 
     public function testIsSuccess() : void {
 
-        $rsp = new SimpleResponse();
+        $rsp = new PsrResponse();
         $base = $this->newResponse( $rsp );
         self::assertTrue( $base->isSuccess() );
 
@@ -369,7 +369,7 @@ final class ResponseTest extends TestCase {
 
 
     public function testToStringForFullBody() : void {
-        $rsp = new SimpleResponse( 'TEST_BODY' );
+        $rsp = new PsrResponse( 'TEST_BODY' );
         $rsp = $rsp->withHeader( 'Content-Type', 'text/plain' );
         $base = $this->newResponse( $rsp );
         $st = strval( $base );
@@ -380,12 +380,12 @@ final class ResponseTest extends TestCase {
 
 
     public function testToStringForNoBody() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->seek( 0, SEEK_END );
         $body->bSeekable = false;
         self::assertTrue( $body->eof() );
 
-        $rsp = new SimpleResponse( $body );
+        $rsp = new PsrResponse( $body );
         $base = $this->newResponse( $rsp );
         $st = strval( $base );
         self::assertStringContainsString( '[Body not available.]', $st );
@@ -393,11 +393,11 @@ final class ResponseTest extends TestCase {
 
 
     public function testToStringForShortBody() : void {
-        $body = new SimpleStringStream( 'TEST_BODY' );
+        $body = new StringStream( 'TEST_BODY' );
         $body->seek( 5 );
         $body->bSeekable = false;
 
-        $rsp = new SimpleResponse( $body );
+        $rsp = new PsrResponse( $body );
         $base = $this->newResponse( $rsp );
         $st = strval( $base );
         self::assertStringContainsString( '[...]', $st );
@@ -409,15 +409,15 @@ final class ResponseTest extends TestCase {
     private function newResponse( ResponseInterface|StreamInterface|string|null $i_rsp = null,
                                   ?LoggerInterface                              $i_log = null ) : Response {
         if ( is_string( $i_rsp ) ) {
-            $i_rsp = new SimpleStringStream( $i_rsp );
+            $i_rsp = new StringStream( $i_rsp );
         }
         if ( $i_rsp instanceof StreamInterface ) {
-            $i_rsp = new SimpleResponse( $i_rsp );
+            $i_rsp = new PsrResponse( $i_rsp );
         }
         if ( ! $i_rsp instanceof ResponseInterface ) {
-            $i_rsp = new SimpleResponse();
+            $i_rsp = new PsrResponse();
         }
-        return new Response( new SimpleRequest(), $i_rsp, $i_log );
+        return new Response( new PsrRequest(), $i_rsp, $i_log );
     }
 
 

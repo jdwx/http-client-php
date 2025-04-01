@@ -7,7 +7,7 @@ declare( strict_types = 1 );
 namespace Support;
 
 
-use JDWX\HttpClient\Simple\SimpleResponse;
+use JDWX\PsrHttp\Response as PsrResponse;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -34,13 +34,12 @@ class MyTestClient implements ClientInterface {
      *
      * If the response is a Throwable, it will be thrown.
      */
-    public function __construct( public array $rResponses = [] ) { }
+    public function __construct( public array $rResponses = [] ) {}
 
 
     public function error404() : ResponseInterface {
-        return ( new SimpleResponse( '404 Not Found', uStatusCode: 404, stReasonPhrase: 'Not Found' ) )
-            ->withHeader( 'Content-Type', 'text/plain' )
-        ;
+        return ( new PsrResponse( '404 Not Found', uStatusCode: 404, stReasonPhrase: 'Not Found' ) )
+            ->withHeader( 'Content-Type', 'text/plain' );
     }
 
 
@@ -57,10 +56,10 @@ class MyTestClient implements ClientInterface {
 
         $rsp = $this->rResponses[ $stPath ];
         if ( is_int( $rsp ) ) {
-            return new SimpleResponse( 'Oh no error!', uStatusCode: $rsp, stReasonPhrase: 'Simulated error' );
+            return new PsrResponse( 'Oh no error!', uStatusCode: $rsp, stReasonPhrase: 'Simulated error' );
         }
         if ( is_string( $rsp ) ) {
-            return new SimpleResponse( $rsp );
+            return new PsrResponse( $rsp );
         }
         if ( $rsp instanceof ResponseInterface ) {
             return $rsp;
