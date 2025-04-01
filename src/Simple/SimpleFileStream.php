@@ -37,6 +37,15 @@ class SimpleFileStream implements StreamInterface {
     }
 
 
+    public static function fromString( string $string ) : static {
+        $stream = fopen( 'php://temp', 'r+' );
+        assert( is_resource( $stream ) ); # This assertion is untestable.
+        fwrite( $stream, $string );
+        rewind( $stream );
+        return new static( $stream );
+    }
+
+
     public function __destruct() {
         if ( ! $this->bIsClosed ) {
             $this->close();

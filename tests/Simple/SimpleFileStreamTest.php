@@ -46,6 +46,13 @@ final class SimpleFileStreamTest extends TestCase {
     }
 
 
+    public function testFromString() : void {
+        $st = 'TEST_CONTENT';
+        $this->stream = SimpleFileStream::fromString( $st );
+        self::assertSame( $st, strval( $this->stream ) );
+    }
+
+
     public function testGetContents() : void {
         $st = 'TEST_CONTENT';
         $this->newFileStream( $st );
