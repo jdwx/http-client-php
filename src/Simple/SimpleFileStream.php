@@ -40,7 +40,8 @@ class SimpleFileStream implements StreamInterface {
     public static function fromString( string $string ) : static {
         $stream = fopen( 'php://temp', 'r+' );
         assert( is_resource( $stream ) ); # This assertion is untestable.
-        fwrite( $stream, $string );
+        $buSize = fwrite( $stream, $string );
+        assert( $buSize === strlen( $string ) ); # This assertion is untestable.
         rewind( $stream );
         return new static( $stream );
     }
